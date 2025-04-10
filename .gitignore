@@ -1,0 +1,23 @@
+# Ignore build directories
+build/
+cmake-build-*/
+
+# Ignore CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Ignore compiled binaries
+*.o
+*.so
+*.a
+*.exe
+*.out
+
+# Ignore CLion specific files
+.idea/
+
+# Ignore OS junk
+.DS_Store
+Thumbs.db
