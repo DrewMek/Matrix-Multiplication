@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <chrono>
+#include <vector>
 using namespace std;
 
 /* Dot Product is used in multiplying two matrices as long as the number of columns
@@ -9,70 +10,64 @@ using namespace std;
  */
 
 int main(){
-    cout << "Multiplying Two Matrices\n___________________________";
+    cout << "Multiplying Two Matrices\n___________________________\n";
 
-    double matrixOne[3][2] = {
-        {4, 3},
-        {9, 5},
-        {11, 1}
-    };
+    int rowsA, colsA, rowsB, colsB;
+    cout << "Enter rows for Matrix A: ";
+    cin >> rowsA;
+    cout << "Enter columns for matrix A: ";
+    cin >> colsA;
+    cout << "Enter rows for Matrix B: ";
+    cin >> rowsB;
+    cout << "Enter columns for matrix B: ";
+    cin >> colsB;
 
-    double matrixTwo[2][3] = {
-        {9, 12, 8},
-        {6, 5, 4},
-    };
-
-    cout << "\nMatrix One (3x2):\n";
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 2; j++) {
-            cout << matrixOne[i][j] << " ";
-        }
-        cout << "\n";
+    if (colsA != rowsB) {
+        cout << "Matrix multiplication not possible (colsA != rowsB)\n";
+        return -1;
     }
+    srand(time(0));
 
-    cout << "\nMatrix Two (2x3):\n";
-    for (int i = 0; i < 2; i++) {  // Loop through rows
-        for (int j = 0; j < 3; j++) {  // Loop through columns
-            cout << matrixTwo[i][j] << " ";
-        }
-        cout << "\n";
-    }
+    vector<vector<double>> A(rowsA, vector<double>(colsA));
+    vector<vector<double>> B(rowsB, vector<double>(colsB));
+    vector<vector<double>> C(rowsA, vector<double>(colsB, 0.0));
 
-    double matrixThree[3][3];
+    for (int i = 0; i < rowsA; ++i)
+        for (int j = 0; j < colsA; ++j)
+            A[i][j] = rand() % 1001;
+
+    for (int i = 0; i < rowsB; ++i)
+        for (int j = 0; j < colsB; ++j)
+            B[i][j] = 2.0 * (i - j);
+
 
     auto start = std::chrono::steady_clock::now();
 
-    int N = 3; //size of our new matrixThree
-    int M = 2; //amount of rows in M1, and the columns in M2;
-
     //ijk order (row major?)
-        for (int i = 0; i < N; i++){ //iterates through rows
-
-            for (int j = 0; j < N; j++){ //columns
-                matrixThree[i][j] = 0; //required so we don't reuse the last loop's calculation
-
-                for(int k = 0; k < M; k++){ //iterates through shared size 'n'
-                    matrixThree[i][j] += (matrixOne[i][k] * matrixTwo[k][j]); //dot product!
-                }
-            }
-        }
+    for (int i = 0; i < rowsA; ++i)
+        for (int j = 0; j < colsB; ++j)
+            for (int k = 0; k < colsA; ++k)
+                C[i][j] += A[i][k] * B[k][j];
     auto end = std::chrono::steady_clock::now(); //calculation completed
 
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
-    //printing the new NxN matrix
-    for (int i = 0; i < N; i++){
-        cout << "\n";
-        for (int j = 0 ; j < N; j++){
-            cout << matrixThree[i][j];
-            cout << ", ";
+
+    if(rowsA < 10) //we dont want 1000x1000 matrices being printed
+    {
+        //printing the new NxN matrix
+        for (int i = 0; i < rowsA; i++){
+            cout << "\n";
+            for (int j = 0 ; j < colsB; j++){
+                cout << C[i][j];
+                cout << ", ";
+            }
         }
     }
+    cout << "\nMatrix multiplication performed in " << duration.count() << " nanoseconds"
+    << " or " << duration.count() / 1e9 << " seconds\n";
 
-    cout << "\nMatrix multiplication performed in " << duration.count() << " nanoseconds\n";
-
-
-    double matrixOneB[3][2] = {
+    /** double matrixOneB[3][2] = {
         {8, 5},
         {5, 1},
         {15, 4}
@@ -123,4 +118,5 @@ int main(){
         }
     }
     cout << "\nMatrix multiplication performed in " << duration2.count() << " nanoseconds";
+    **/
 }
