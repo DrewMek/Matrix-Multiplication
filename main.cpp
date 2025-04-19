@@ -56,7 +56,7 @@ int main(){
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
 
-    if(rowsA < 10) //we dont want 1000x1000 matrices being printed
+    if(rowsA < 10) //we don't want 1000x1000 matrices being printed
     {
         //printing the new NxN matrix
         for (int i = 0; i < rowsA; i++){
@@ -69,6 +69,7 @@ int main(){
     }
     cout << "\nMatrix multiplication performed in " << duration.count() << " nanoseconds"
     << " or " << duration.count() / 1e9 << " seconds\n";
+
 
     auto start2 = std::chrono::high_resolution_clock::now();
 

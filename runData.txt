@@ -1,0 +1,71 @@
+Running on 16 logical processors
+(8 cores 2 threads)
+
+(Flat vectors, row major order, 1000x1000 matrix)
+Basic matrix multiply, in nanoseconds -
+1: 3.73709
+2: 4.09039
+3: 3.77044
+4: 3.80384
+5: 3.84167
+
+Cachegrind data sample
+I = instruction and instruction cache, D = data and data cache. rd = read, wr = write
+LL = last level cache (L3, in our case)
+
+
+I refs:        8,120,925,464
+I1  misses:            2,438
+LLi misses:            2,387
+I1  miss rate:          0.00%
+LLi miss rate:          0.00%
+
+D refs:        3,052,698,062  (2,022,520,524 rd   + 1,030,177,538 wr)
+D1  misses:    1,126,889,816  (1,126,137,549 rd   +       752,267 wr)
+LLd misses:          884,476  (      132,972 rd   +       751,504 wr)
+D1  miss rate:          36.9% (         55.7%     +           0.1%  )
+LLd miss rate:           0.0% (          0.0%     +           0.1%  )
+
+LL refs:       1,126,892,254  (1,126,139,987 rd   +       752,267 wr)
+LL misses:           886,863  (      135,359 rd   +       751,504 wr)
+LL miss rate:            0.0% (          0.0%     +           0.1%  )
+
+D1 miss rate is 36.9%, which is terrible.  To be specific, 55.7% read processes
+miss, while only 0.1% read processes miss.
+Maybe changing our loop order (ijk currently) will help?
+___________________________________________________________
+___________________________________________________________
+openBLAS matrix multiplication, 1000x1000 matrix
+
+1: 0.0201582
+2: 0.0263789
+3: 0.0089859
+4: 0.0131228
+5: 0.0105847
+
+WAY faster, heres the sample cache data:
+
+I refs:        770,732,587
+I1  misses:          6,385
+LLi misses:          3,907
+I1  miss rate:        0.00%
+LLi miss rate:        0.00%
+D refs:        334,182,612  (301,735,110 rd   + 32,447,502 wr)
+D1  misses:     23,833,819  ( 21,755,404 rd   +  2,078,415 wr)
+LLd misses:      1,040,277  (    174,217 rd   +    866,060 wr)
+D1  miss rate:         7.1% (        7.2%     +        6.4%  )
+LLd miss rate:         0.3% (        0.1%     +        2.7%  )
+LL refs:        23,840,204  ( 21,761,789 rd   +  2,078,415 wr)
+LL misses:       1,044,184  (    178,124 rd   +    866,060 wr)
+LL miss rate:          0.1% (        0.0%     +        2.7%  )
+
+FAR less refs of all kinds across the board.
+D1 miss rate is down to 7.1% from 36.9%  Specifically, reads are down to 7.2%, and writes up to 6.4%
+Strangely, my rudimentary version only had 0.1%.
+Most likely, this is the result of a tradeoff where more write misses allow for more efficient reading.
+
+Where to go from here?
+Try changing the loop order to column major, determine cache friendliness.
+Figure out why openBLAS sends less instructions
+Try to get our rudimentary code to run parallel, and use more than 1 core
+
