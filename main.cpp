@@ -3,6 +3,8 @@
 #include <chrono>
 #include <vector>
 #include <cblas.h>
+#include <omp.h>
+#include <immintrin.h>
 
 using namespace std;
 
@@ -34,6 +36,8 @@ int main(){
     vector<double> B(rowsB * colsB);
     vector<double> C(rowsA * colsB, 0.0);
     vector<double> C_blas(rowsA * colsB, 0.0);  //for OpenBLAS
+    __m256d a_vec, b_vec, c_vec; //used in intrinsics for SIMD parallelization
+
 
     for (int i = 0; i < rowsA; ++i)
         for (int j = 0; j < colsA; ++j)
@@ -42,15 +46,25 @@ int main(){
     for (int i = 0; i < rowsB; ++i)
         for (int j = 0; j < colsB; ++j)
             B[i * colsB + j] = 2.0 * (i - j);
-
+    omp_set_num_threads(omp_get_num_procs());
 
     auto start = std::chrono::high_resolution_clock::now();
-
-    //ijk order (row major?)
-    for (int i = 0; i < rowsA; ++i)
-        for (int j = 0; j < colsB; ++j)
-            for (int k = 0; k < colsA; ++k)
-                C[i * colsB + j] += A[i * colsA + k] * B[k * colsB + j];
+//ikj
+#pragma omp parallel for
+    for (int i = 0; i < rowsA; ++i) {
+        for (int k = 0; k < colsA; ++k) {
+            double a = A[i * colsA + k];
+            a_vec = _mm256_set1_pd(a); //copies scalar to all 4 lanes of a_vec
+            for (int j = 0; j < colsB - 4; j+=4) { //we iterate by 4 values at a time because they're now running parallel
+                //C[i * colsB + j] += a * B[k * colsB + j];
+                b_vec = _mm256_loadu_pd(&B[k * colsB + j]); //loads our current
+                c_vec = _mm256_loadu_pd(&C[i * colsB + j]);
+                __m256d dproduct = _mm256_mul_pd(a_vec, b_vec);
+                __m256d updated_c = _mm256_add_pd(c_vec, dproduct);
+                _mm256_storeu_pd(&C[i * colsB + j],updated_c);
+            }
+        }
+    }
     auto end = std::chrono::high_resolution_clock::now(); //calculation completed
 
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);

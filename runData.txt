@@ -62,10 +62,41 @@ LL miss rate:          0.1% (        0.0%     +        2.7%  )
 FAR less refs of all kinds across the board.
 D1 miss rate is down to 7.1% from 36.9%  Specifically, reads are down to 7.2%, and writes up to 6.4%
 Strangely, my rudimentary version only had 0.1%.
-Most likely, this is the result of a tradeoff where more write misses allow for more efficient reading.
+tradeoff where more write misses allow for more efficient reading?
 
 Where to go from here?
-Try changing the loop order to column major, determine cache friendliness.
+Try changing the loop order to another permutation, determine cache friendliness.
 Figure out why openBLAS sends less instructions
-Try to get our rudimentary code to run parallel, and use more than 1 core
+Try to get our rudimentary code to use parallelization
+___________________
+After changing the loop order to IKJ, the results were very positive.
+1: D1 miss rate down to less than 1%
+2: 10 times more I refs (bad, but a net positive result)
+3: Average time to complete down to roughly 2.2s from roughly 3.9s
+Next step will be using openMP to parallelize my loop
+___________________
+I learned about basic OpenMP and used it to parallelize the main loop.
+Now, the calculations finish in under 0.5s.
+We're using all cores, so next step is to figure out how we can get more out of each core. (SIMD?)
+___________________
+I have manually vectorized my loop to further improve performance
+
+For 1000x1000 matrices:
+
+My code: 0.043000 second average
+
+OpenBlas: 0.0257400 second average
+
+Finally, we are catching up.  However, my program collapses under larger matrices:
+
+For 10000x10000 matrices:
+
+My code: 123 seconds
+
+OpenBlas: 6 seconds
+
+Next step is to solve the scaling problem.  Somehow.
+
+
+
 
